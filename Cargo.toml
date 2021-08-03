@@ -1,0 +1,13 @@
+[package]
+name = "git-filter-server"
+description = "Implementation of long-running-process-protocol"
+license = "MIT"
+version = "0.1.0"
+authors = ["Yaroslav Bolyukin <iam@lach.pw>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1.0.42"
+hex = "0.4.3"
+thiserror = "1.0.26"
+tracing = "0.1.26"
