@@ -79,7 +79,7 @@ impl<R: Read> Read for ReadPktUntilFlush<R> {
         }
         let data = &self.buffer[self.offset..];
         let read_bytes = data.len().min(buf.len());
-        buf[..read_bytes].copy_from_slice(data);
+        buf[..read_bytes].copy_from_slice(&data[..read_bytes]);
         self.offset += read_bytes;
         self.read_bytes = self.read_bytes.saturating_add(read_bytes as u64);
 
