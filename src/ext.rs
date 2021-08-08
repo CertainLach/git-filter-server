@@ -18,14 +18,13 @@ impl<R: Read> ReadExt for R {
         hex::decode_to_slice(&len_hex, &mut len_bytes).map_err(|_| parse_error!("bad hex len"))?;
 
         let mut len = u16::from_be_bytes(len_bytes) as usize;
-        if len > MAX_PKT_SIZE {
-            return Err(parse_error!("max packet size exceeded"));
-        }
         if len == 0 {
             return Ok(None);
         }
         len -= 4;
-        if len == 0 {
+        if len > MAX_PKT_SIZE {
+            return Err(parse_error!("max packet size exceeded"));
+        } else if len == 0 {
             return Err(parse_error!("packet size is zero"));
         }
 
