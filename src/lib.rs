@@ -111,17 +111,21 @@ impl<P: Processor> GitFilterServer<P> {
 
                         output.pkt_text_write("status=success")?;
                         output.pkt_end()?;
-                        let process_output = &mut WritePkt::new(&mut output);
+                        let mut process_output = WritePkt::new(&mut output);
                         if let Err(e) =
                             self.0
-                                .get_scheduled(&pathname, process_type, process_output)
+                                .get_scheduled(&pathname, process_type, &mut process_output)
                         {
+                            process_output.flush()?;
+                            drop(process_output);
                             error!("{:#}", e);
                             output.pkt_end()?;
                             output.pkt_text_write("status=error")?;
                             output.pkt_end()?;
                             return Ok(());
                         } else {
+                            process_output.flush()?;
+                            drop(process_output);
                             output.pkt_end()?;
                             // Keep status
                             output.pkt_end()?;
@@ -148,19 +152,23 @@ impl<P: Processor> GitFilterServer<P> {
                                 .entered();
                         output.pkt_text_write("status=success")?;
                         output.pkt_end()?;
-                        let process_output = &mut WritePkt::new(&mut output);
+                        let mut process_output = WritePkt::new(&mut output);
                         if let Err(e) = self.0.process(
                             &pathname,
                             process_type,
                             &mut process_input,
-                            process_output,
+                            &mut process_output,
                         ) {
+                            process_output.flush()?;
+                            drop(process_output);
                             error!("{:#}", e);
                             output.pkt_end()?;
                             output.pkt_text_write("status=error")?;
                             output.pkt_end()?;
                             return Ok(());
                         } else {
+                            process_output.flush()?;
+                            drop(process_output);
                             output.pkt_end()?;
                             // Keep status
                             output.pkt_end()?;

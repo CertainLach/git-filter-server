@@ -2,7 +2,7 @@ use std::io::{Read, Result, Write};
 
 use crate::parse_error;
 
-const MAX_PKT_SIZE: usize = 65516;
+pub const MAX_PKT_SIZE: usize = 65516;
 
 pub trait ReadExt {
     fn pkt_bin_read<'b>(&mut self, out: &'b mut Vec<u8>) -> Result<Option<&'b [u8]>>;

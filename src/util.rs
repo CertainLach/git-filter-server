@@ -1,37 +1,65 @@
-use crate::ext::{ReadExt, WriteExt};
+use crate::ext::{ReadExt, WriteExt, MAX_PKT_SIZE};
 use std::io::{Read, Result, Write};
 
 /// Writes to inner buffer, wrapping input with pkt format
 /// Doesn't sends flush sequences (0000)
-pub struct WritePkt<W> {
+pub struct WritePkt<W: Write> {
+    buffer: Vec<u8>,
     write: W,
     written: u64,
 }
-impl<W> WritePkt<W> {
+impl<W: Write> WritePkt<W> {
     pub fn new(write: W) -> Self {
-        Self { write, written: 0 }
+        Self {
+            buffer: Vec::new(),
+            write,
+            written: 0,
+        }
     }
     #[allow(dead_code)]
     pub fn written(&self) -> u64 {
         self.written
     }
+    fn flush_buf(&mut self) -> Result<()> {
+        self.write.pkt_bin_write(&self.buffer)?;
+        self.written = self.written.saturating_add(self.buffer.len() as u64);
+        self.buffer.truncate(0);
+        Ok(())
+    }
 }
 impl<W: Write> Write for WritePkt<W> {
-    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+    fn write(&mut self, mut buf: &[u8]) -> Result<usize> {
         if buf.len() == 0 {
             return Ok(0);
         }
-        self.write.pkt_bin_write(buf)?;
-        self.written = self.written.saturating_add(buf.len() as u64);
-        Ok(buf.len())
+        let len = buf.len();
+        while buf.len() > 0 {
+            let to_write = (MAX_PKT_SIZE - self.buffer.len()).min(buf.len());
+            self.buffer.reserve(to_write);
+            self.buffer.write_all(&buf[..to_write]).unwrap();
+            if self.buffer.len() == MAX_PKT_SIZE {
+                self.flush_buf()?;
+            }
+            buf = &buf[to_write..];
+        }
+        Ok(len)
     }
 
     fn flush(&mut self) -> Result<()> {
+        self.flush_buf()?;
         self.write.flush()
     }
 }
 
-/// Reads data in pkt format until receiving flush (000)
+impl<W: Write> Drop for WritePkt<W> {
+    fn drop(&mut self) {
+        if self.buffer.len() > 0 {
+            panic!("WritePkt was not flushed before drop")
+        }
+    }
+}
+
+/// Reads data in pkt format until receiving flush (0000)
 pub struct ReadPktUntilFlush<R> {
     read: R,
     read_bytes: u64,
