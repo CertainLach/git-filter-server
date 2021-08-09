@@ -57,7 +57,7 @@ pub trait WriteExt {
 
 impl<W: Write> WriteExt for W {
     fn pkt_bin_write(&mut self, data: &[u8]) -> Result<()> {
-        for chunk in data.chunks((MAX_PKT_SIZE - 4) as usize) {
+        for chunk in data.chunks(MAX_PKT_SIZE - 4) {
             let len_bytes = (chunk.len() as u16 + 4).to_be_bytes();
             let mut len_hex = [0; 4];
             hex::encode_to_slice(&len_bytes, &mut len_hex).unwrap();
