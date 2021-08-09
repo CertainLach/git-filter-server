@@ -2,7 +2,7 @@
 name = "git-filter-server"
 description = "Implementation of long-running-process-protocol"
 license = "MIT"
-version = "0.1.3"
+version = "0.1.4-alpha.0"
 authors = ["Yaroslav Bolyukin <iam@lach.pw>"]
 edition = "2018"
 
