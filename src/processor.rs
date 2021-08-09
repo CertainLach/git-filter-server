@@ -1,6 +1,6 @@
 use crate::parse_error;
-use std::io::{Read, Write};
 use anyhow::Result;
+use std::io::{Read, Write};
 
 #[derive(PartialEq, Clone, Copy, Hash)]
 pub enum ProcessingType {

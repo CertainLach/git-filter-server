@@ -33,13 +33,13 @@ impl<P: Processor> GitFilterServer<P> {
         let mut buf = Vec::new();
         {
             if input.pkt_text_read(&mut buf)? != Some("git-filter-client") {
-                return Err(parse_error!("bad prelude").into());
+                return Err(parse_error!("bad prelude"));
             }
             if input.pkt_text_read(&mut buf)? != Some("version=2") {
-                return Err(parse_error!("unknown version").into());
+                return Err(parse_error!("unknown version"));
             }
             if input.pkt_text_read(&mut buf)? != None {
-                return Err(parse_error!("unexpected text after client hello").into());
+                return Err(parse_error!("unexpected text after client hello"));
             }
         }
         {
@@ -85,7 +85,7 @@ impl<P: Processor> GitFilterServer<P> {
                     can_delay = true;
                 }
             }
-            let command = command.ok_or(parse_error!("missing command"))?;
+            let command = command.ok_or_else(|| parse_error!("missing command"))?;
             let _span = info_span!("command", command = format_args!("{:?}", command),).entered();
 
             match command.as_str() {
@@ -95,7 +95,7 @@ impl<P: Processor> GitFilterServer<P> {
                         "smudge" => ProcessingType::Smudge,
                         _ => unreachable!(),
                     };
-                    let pathname = pathname.ok_or(parse_error!("missing pathname"))?;
+                    let pathname = pathname.ok_or_else(|| parse_error!("missing pathname"))?;
                     let mut process_input = ReadPktUntilFlush::new(&mut input);
                     if waiting_for_blobs {
                         let _span = info_span!(
@@ -181,7 +181,7 @@ impl<P: Processor> GitFilterServer<P> {
                     self.0.switch_to_wait();
                     waiting_for_blobs = true;
                 }
-                cmd => return Err(parse_error!(format!("unknown command: {}", cmd)).into()),
+                cmd => return Err(parse_error!(format!("unknown command: {}", cmd))),
             }
         }
     }

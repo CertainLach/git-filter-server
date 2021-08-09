@@ -29,11 +29,11 @@ impl<W: Write> WritePkt<W> {
 }
 impl<W: Write> Write for WritePkt<W> {
     fn write(&mut self, mut buf: &[u8]) -> Result<usize> {
-        if buf.len() == 0 {
+        if buf.is_empty() {
             return Ok(0);
         }
         let len = buf.len();
-        while buf.len() > 0 {
+        while !buf.is_empty() {
             let to_write = (MAX_PKT_SIZE - self.buffer.len()).min(buf.len());
             self.buffer.reserve(to_write);
             self.buffer.write_all(&buf[..to_write]).unwrap();
@@ -53,7 +53,7 @@ impl<W: Write> Write for WritePkt<W> {
 
 impl<W: Write> Drop for WritePkt<W> {
     fn drop(&mut self) {
-        if self.buffer.len() > 0 {
+        if !self.buffer.is_empty() {
             panic!("WritePkt was not flushed before drop")
         }
     }
