@@ -35,6 +35,10 @@ impl ProcessingType {
 /// Typically git talks with processor via stdio, so better do not use it inside
 pub trait Processor {
     /// Handle clean/smudge operation
+    ///
+    /// Warning:
+    /// Git doesn't support streaming, you should read input, and then write output,
+    /// not to pipe input via handler to output
     fn process<R: Read, W: Write>(
         &mut self,
         _pathname: &str,
